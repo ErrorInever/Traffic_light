@@ -21,6 +21,12 @@ A robust, register-level traffic light control system implemented on the STM32F4
 | **Pedestrian Green LED** | PC1 | High = ON | Go signal for pedestrians |
 | **Pedestrian Button** | PB0 | Pull-up | Active Low (Interrupt) |
 
+
+<img width="1254" height="529" alt="traffic-light_2026-02-25 (2)" src="https://github.com/user-attachments/assets/0a21a7a6-8dc1-4819-93c2-5a390c867958" />
+
+
+
+
 ---
 
 ## ⏱ Timing Logic
@@ -45,3 +51,4 @@ The system operates on a Global Time Reference principle. Instead of halting the
 | `main.c` | Main loop with FSM transition logic |
 
 ---
+
