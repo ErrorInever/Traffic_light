@@ -39,12 +39,18 @@ static void test_ped_led(void) {
 void traffic_FSM_process(void) {
   static TrafficLightState current_state = CAR_RED_LIGHT;
   static bool init_traffic = true;
+  static uint32_t phase_start_time = 0;
+  uint32_t global_time = seconds_counter;
+  uint32_t time_in_phase = global_time - phase_start_time;
 
   if(button_is_pressed) {
-    if ((seconds_counter - last_button_press_time) >= 30) {
-      if((current_state == CAR_GREEN_LIGHT) && (seconds_counter >= PED_BUTTON_THRESHOLD)) {
-        current_state = CAR_GREEN_LIGHT - 5;
-        last_button_press_time = seconds_counter;
+    button_is_pressed = false; // reset button flag
+    // Has it been 30 seconds since the last button press?
+    if((global_time - last_button_press_time) >= 60) {
+      // If the light is green now and it has been on for more than half of its time
+      if(current_state == CAR_GREEN_LIGHT && time_in_phase >= PED_BUTTON_THRESHOLD) {
+        phase_start_time = global_time - (CAR_GREENLIGHT_TIME - 5);
+        last_button_press_time = global_time;
       }
     }
   }
@@ -54,51 +60,52 @@ void traffic_FSM_process(void) {
     led_off(&ped_red_led);
     led_on(&ped_green_led);
     init_traffic = false;
+    phase_start_time = global_time;
   }
   
   switch (current_state) {  
     case CAR_RED_LIGHT:
-      if(seconds_counter >= PED_GREENLIGHT_TIME_BLINK) {
-        if ((TIM2->CNT % 5000) < 2500) { // blink
+      if(time_in_phase >= PED_GREENLIGHT_TIME_BLINK) {
+        if ((TIM2->CNT % 5000) < 2500) { // blink led
             led_on(&ped_green_led);
         } else {
             led_off(&ped_green_led);
         }
       }
-      if(seconds_counter >= CAR_RED_LIGHT_TIME) {
+      if(time_in_phase >= CAR_RED_LIGHT_TIME) {
         led_off(&ped_green_led);
         led_on(&ped_red_led);
         current_state = CAR_YELLOW_LIGHT;
         led_on(&yellow_led);
-        seconds_counter = 0;
+        phase_start_time = global_time; // when yellow in start
       }
       break;
     case CAR_YELLOW_LIGHT:
-      if(seconds_counter < CAR_YELLOW_LIGHT_TIME) break;
+      if(time_in_phase < CAR_YELLOW_LIGHT_TIME) break;
       else {
         led_off(&red_led);
         led_off(&yellow_led);
         led_on(&ped_red_led);
         current_state = CAR_GREEN_LIGHT;
         led_on(&green_led);
-        seconds_counter = 0;
+        phase_start_time = global_time; // when green in start
       }
       break;
     case CAR_GREEN_LIGHT:
-      if(seconds_counter >= CAR_GREENLIGHT_TIME_BLINK) {
+      if(time_in_phase >= CAR_GREENLIGHT_TIME_BLINK) {
         if ((TIM2->CNT % 5000) < 2500) {  // blink
             led_on(&green_led);
         } else {
             led_off(&green_led);
         }
       }
-      if (seconds_counter >= CAR_GREENLIGHT_TIME){
+      if (time_in_phase >= CAR_GREENLIGHT_TIME){
         led_off(&green_led);
         current_state = CAR_RED_LIGHT;
         led_on(&red_led);
         led_off(&ped_red_led);
         led_on(&ped_green_led);
-        seconds_counter = 0;
+        phase_start_time = global_time;
       }
       break;
   }
