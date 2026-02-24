@@ -19,7 +19,6 @@ typedef enum {CAR_RED_LIGHT, CAR_YELLOW_LIGHT, CAR_GREEN_LIGHT} TrafficLightStat
 
 #define PED_BUTTON_THRESHOLD (CAR_GREENLIGHT_TIME >> 1UL)  // devide by 2
 
-int8_t anti_vandal_cycle = 0;
 
 static void test_car_led(void) {
     led_toggle(&red_led);
@@ -41,11 +40,13 @@ void traffic_FSM_process(void) {
   static TrafficLightState current_state = CAR_RED_LIGHT;
   static bool init_traffic = true;
 
-  if(button_is_pressed && (current_state == CAR_GREEN_LIGHT) && (anti_vandal_cycle >= 3) 
-  && (seconds_counter >= PED_BUTTON_THRESHOLD)) {
-    seconds_counter = CAR_GREENLIGHT_TIME - 5;
-    button_is_pressed = false;
-    anti_vandal_cycle = 0;
+  if(button_is_pressed) {
+    if ((seconds_counter - last_button_press_time) >= 30) {
+      if((current_state == CAR_GREEN_LIGHT) && (seconds_counter >= PED_BUTTON_THRESHOLD)) {
+        current_state = CAR_GREEN_LIGHT - 5;
+        last_button_press_time = seconds_counter;
+      }
+    }
   }
 
   if(init_traffic) {
@@ -101,7 +102,6 @@ void traffic_FSM_process(void) {
       }
       break;
   }
-  anti_vandal_cycle++;
 }
 
 

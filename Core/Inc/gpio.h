@@ -20,6 +20,7 @@ extern const Led_t red_led, yellow_led, green_led, error_led;
 extern const Led_t ped_red_led, ped_green_led;
 extern const Button_t button_ped_tl;
 extern volatile bool button_is_pressed;
+extern volatile uint32_t last_button_press_time;
 
 void led_init(void);
 
@@ -37,6 +38,6 @@ static inline void led_toggle(const Led_t* led) {
 
 void button_init(void);
 void button_interrupt_init(void);
-void EXTI15_10_IRQHandler(void);
+void EXTI0_IRQHandler(void);
 
 #endif

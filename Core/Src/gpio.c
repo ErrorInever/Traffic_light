@@ -19,6 +19,7 @@ const Led_t error_led = {GPIOA, GPIO_PIN_5};
 const Button_t button_ped_tl = {GPIOB, GPIO_PIN_0};
 // Button is pressed
 volatile bool button_is_pressed = false;
+volatile uint32_t last_button_press_time = 0;
 
 void led_init(void) {
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
